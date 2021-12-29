@@ -156,12 +156,13 @@ with c2:
 # need to use try and except for api response error
 # my_matches = watcher.match.matchlist_by_puuid(my_region, me['accountId'])
 c3, c4 = st.columns((1, 1))
+
 with c3:
     queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
     if not queue_type:
         st.stop()
 
-    match_list = watcher.match.matchlist_by_puuid('americas',me['puuid'], type=queue_type.lower())
+    match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
     # st.write(watcher.match.by_id('americas', match_list[1]))
     # fetch last match detail into table need to change id value to actual terms
     for i in range(len(match_list)-15):
@@ -197,6 +198,60 @@ with c3:
         # st.dataframe(df)
         st.write(df.to_html(escape=False), unsafe_allow_html=True)
         st.write("<br>", unsafe_allow_html=True)
+
+
+with c4:
+    match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
+
+    st.write("<br>", unsafe_allow_html=True)
+    st.write("<br>", unsafe_allow_html=True)
+    st.write("<br>", unsafe_allow_html=True)
+    st.write("<br>", unsafe_allow_html=True)
+    st.write("<br>", unsafe_allow_html=True)
+    st.write("<br>", unsafe_allow_html=True)
+
+    for i in range(len(match_list) - 15):
+        game_1 = watcher.match.timeline_by_match('americas', match_list[i])
+        gold = {}
+        for i in range(len(game_1['info']['frames'])):
+            gold['{}'.format(i)] = {}
+        for value in gold.values():
+            for i in range(1, 11):
+                value['{}'.format(i)] = 0
+
+        for i in range(len(game_1['info']['frames'])):
+            for j in range(1, 11):
+                gold['{}'.format(i)]['{}'.format(j)] = game_1['info']['frames'][i]['participantFrames']['{}'.format(j)][
+                    'totalGold']
+
+        team_1_gold = []
+        team_2_gold = []
+        for key in gold.keys():
+            team1 = 0
+            team2 = 0
+            for i in range(1, 6):
+                team1 += gold[key]['{}'.format(i)]
+                team2 += gold[key]['{}'.format(i + 5)]
+            team_1_gold.append(team1)
+            team_2_gold.append(team2)
+        frame_size = [i for i in range(len(team_1_gold))]
+
+        gold_diff = np.array(team_1_gold) - np.array(team_2_gold)
+
+        # plt.plot(frame_size, team_1_gold, label="Team 1", marker='o')
+        # plt.title('GoldTeam 1')
+        # plt.xlabel('Minutes')
+        # plt.ylabel('Gold')
+        # plt.plot(frame_size, team_2_gold, label="Team 2", marker='o')
+        # plt.plot(frame_size, gold_diff, label="Diff", marker='o')
+        # plt.legend()
+        st.write()
+        chart_data = pd.DataFrame(
+            zip(team_1_gold, team_2_gold, gold_diff),
+            columns=['Team 1', 'Team 2', 'Gold Difference'])
+
+        st.line_chart(chart_data)
+
 
     # champion_list = ["None"]
     # for value in champ_dict:
