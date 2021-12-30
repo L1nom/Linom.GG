@@ -2,6 +2,7 @@ import streamlit as st
 from riotwatcher import LolWatcher, ApiError
 import pandas as pd
 from apikey import RIOT_API_KEY
+import altair as alt
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -155,103 +156,113 @@ with c2:
 # ----------------------------------------------------------    ------------------------------------------------------------
 # need to use try and except for api response error
 # my_matches = watcher.match.matchlist_by_puuid(my_region, me['accountId'])
-c3, c4 = st.columns((1, 1))
 
-with c3:
-    queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
-    if not queue_type:
-        st.stop()
+queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
+if not queue_type:
+    st.stop()
 
-    match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
-    # st.write(watcher.match.by_id('americas', match_list[1]))
-    # fetch last match detail into table need to change id value to actual terms
-    for i in range(len(match_list)-15):
-        # last_match = my_matches['matches'][i]
-        # match_detail = watcher.match.by_id(my_region, last_match['gameId'])
-        match_detail = watcher.match.by_id('americas', match_list[i])
 
-        # st.stop()
-        # st.write(match_detail)
-        participants = []
-        for row in match_detail['info']['participants']:
-            participants_row = {}
-            participants_row['Win'] = row['win']
-            participants_row['Icon'] = image_link('champion', row['championName'])
-            participants_row['champion'] = row['championName']
-            if participants_row['champion'] == 'MonkeyKing':
-                participants_row['champion'] = 'Wukong'
-            participants_row['Spell1'] = row['summoner1Id']
-            participants_row['Spell2'] = row['summoner2Id']
 
-            participants_row['LVL'] = row['champLevel']
-            participants_row['K/D/A'] = (str(row['kills']) + "/" + str(row['deaths']) + "/" + str(row['assists']))
-            participants_row['DMG'] = row['totalDamageDealt']
-            participants_row['Gold'] = row['goldEarned']
-            participants.append(participants_row)
+match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
 
-            # champ static list data to dict for looking up
 
-        # print dataframea
+# queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
+# if not queue_type:
+#     st.stop()
 
-        df = pd.DataFrame(participants)
+# st.write(watcher.match.by_id('americas', match_list[1]))
+# fetch last match detail into table need to change id value to actual terms
+for i in range(len(match_list)-15):
+    c3, c4 = st.columns([1.25, 1.5])
+
+    # last_match = my_matches['matches'][i]
+    # match_detail = watcher.match.by_id(my_region, last_match['gameId'])
+    match_detail = watcher.match.by_id('americas', match_list[i])
+
+    # st.stop()
+    # st.write(match_detail)
+    participants = []
+    for row in match_detail['info']['participants']:
+        participants_row = {}
+        participants_row['Win'] = row['win']
+        participants_row['Icon'] = image_link('champion', row['championName'])
+        participants_row['champion'] = row['championName']
+        if participants_row['champion'] == 'MonkeyKing':
+            participants_row['champion'] = 'Wukong'
+        participants_row['Spell1'] = row['summoner1Id']
+        participants_row['Spell2'] = row['summoner2Id']
+
+        participants_row['LVL'] = row['champLevel']
+        participants_row['K/D/A'] = (str(row['kills']) + "/" + str(row['deaths']) + "/" + str(row['assists']))
+        participants_row['DMG'] = row['totalDamageDealt']
+        participants_row['Gold'] = row['goldEarned']
+        participants.append(participants_row)
+
+        # champ static list data to dict for looking up
+
+    # print dataframea
+
+    df = pd.DataFrame(participants)
+
+    with c3:
         st.subheader("Game {}".format(i + 1))
         # st.dataframe(df)
         st.write(df.to_html(escape=False), unsafe_allow_html=True)
         st.write("<br>", unsafe_allow_html=True)
 
 
-with c4:
-    match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
 
-    st.write("<br>", unsafe_allow_html=True)
-    st.write("<br>", unsafe_allow_html=True)
-    st.write("<br>", unsafe_allow_html=True)
-    st.write("<br>", unsafe_allow_html=True)
-    st.write("<br>", unsafe_allow_html=True)
-    st.write("<br>", unsafe_allow_html=True)
+# match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
 
-    for i in range(len(match_list) - 15):
-        game_1 = watcher.match.timeline_by_match('americas', match_list[i])
-        gold = {}
-        for i in range(len(game_1['info']['frames'])):
-            gold['{}'.format(i)] = {}
-        for value in gold.values():
-            for i in range(1, 11):
-                value['{}'.format(i)] = 0
 
-        for i in range(len(game_1['info']['frames'])):
-            for j in range(1, 11):
-                gold['{}'.format(i)]['{}'.format(j)] = game_1['info']['frames'][i]['participantFrames']['{}'.format(j)][
-                    'totalGold']
+    # for j in range(len(match_list) - 19):
+    game_1 = watcher.match.timeline_by_match('americas', match_list[i])
+    gold = {}
+    for k in range(len(game_1['info']['frames'])):
+        gold['{}'.format(k)] = {}
+    for value in gold.values():
+        for l in range(1, 11):
+            value['{}'.format(l)] = 0
 
-        team_1_gold = []
-        team_2_gold = []
-        for key in gold.keys():
-            team1 = 0
-            team2 = 0
-            for i in range(1, 6):
-                team1 += gold[key]['{}'.format(i)]
-                team2 += gold[key]['{}'.format(i + 5)]
-            team_1_gold.append(team1)
-            team_2_gold.append(team2)
-        frame_size = [i for i in range(len(team_1_gold))]
+    for m in range(len(game_1['info']['frames'])):
+        for n in range(1, 11):
+            gold['{}'.format(m)]['{}'.format(n)] = game_1['info']['frames'][m]['participantFrames']['{}'.format(n)][
+                'totalGold']
 
-        gold_diff = np.array(team_1_gold) - np.array(team_2_gold)
+    team_1_gold = []
+    team_2_gold = []
+    for key in gold.keys():
+        team1 = 0
+        team2 = 0
+        for o in range(1, 6):
+            team1 += gold[key]['{}'.format(o)]
+            team2 += gold[key]['{}'.format(o + 5)]
+        team_1_gold.append(team1)
+        team_2_gold.append(team2)
+    frame_size = [val for val in range(len(team_1_gold))]
 
-        # plt.plot(frame_size, team_1_gold, label="Team 1", marker='o')
-        # plt.title('GoldTeam 1')
-        # plt.xlabel('Minutes')
-        # plt.ylabel('Gold')
-        # plt.plot(frame_size, team_2_gold, label="Team 2", marker='o')
-        # plt.plot(frame_size, gold_diff, label="Diff", marker='o')
-        # plt.legend()
-        st.write()
+    gold_diff = np.array(team_1_gold) - np.array(team_2_gold)
+
+    # plt.plot(frame_size, team_1_gold, label="Team 1", marker='o')
+    # plt.title('GoldTeam 1')
+    # plt.xlabel('Minutes')
+    # plt.ylabel('Gold')
+    # plt.plot(frame_size, team_2_gold, label="Team 2", marker='o')
+    # plt.plot(frame_size, gold_diff, label="Diff", marker='o')
+    # plt.legend()
+    with c4:
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+
         chart_data = pd.DataFrame(
             zip(team_1_gold, team_2_gold, gold_diff),
             columns=['Team 1', 'Team 2', 'Gold Difference'])
 
         st.line_chart(chart_data)
-
 
     # champion_list = ["None"]
     # for value in champ_dict:
@@ -270,7 +281,7 @@ with c4:
 #     st.write(df.to_html(escape=False), unsafe_allow_html=True)
 #     st.write("<br>", unsafe_allow_html=True)
 
+st.altair_chart()
 
 # start looking at time line json and accumulate gold
 # graph the gold
-#
