@@ -1,7 +1,7 @@
 import streamlit as st
 from riotwatcher import LolWatcher, ApiError
 import pandas as pd
-from apikey import RIOT_API_KEY
+# from apikey import RIOT_API_KEY
 import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3 as s3
