@@ -15,8 +15,8 @@ st.title("LINOM.GG!")
 # )
 # global variables
 # create your own python file and enter your own riot api key
-api_key = RIOT_API_KEY
-
+# api_key = RIOT_API_KEY
+api_key = st.secrets["RIOT_API_KEY"]
 watcher = LolWatcher(api_key)
 my_region = 'na1'
 
