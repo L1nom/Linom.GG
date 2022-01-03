@@ -2,9 +2,9 @@ import streamlit as st
 from riotwatcher import LolWatcher, ApiError
 import pandas as pd
 from apikey import RIOT_API_KEY
-import altair as alt
 import matplotlib.pyplot as plt
 import numpy as np
+import sqlite3 as s3
 
 st.set_page_config(layout="wide")
 # SUMMONER INFORMATION
@@ -35,6 +35,7 @@ latest_champion_ver = data_version['n']['champion']
 latest_icon_ver = data_version['n']['profileicon']
 static_champ_list = watcher.data_dragon.champions(latest_champion_ver, False, 'en_US')
 static_icon_list = watcher.data_dragon.profile_icons(latest_icon_ver, 'en_US')
+
 # st.write(data_version)
 
 # st.write(static_champ_list['data']['Aatrox'])  # test for champion data
@@ -154,7 +155,10 @@ with c2:
     # add champion image in table??
 # st.stop() #Riot API Status error, cannot access match data
 # ----------------------------------------------------------    ------------------------------------------------------------
-# need to use try and except for api response error
+
+
+#
+# # need to use try and except for api response error
 # my_matches = watcher.match.matchlist_by_puuid(my_region, me['accountId'])
 
 queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
@@ -165,6 +169,12 @@ if not queue_type:
 
 match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queue_type.lower())
 
+spell_dict = watcher.data_dragon.summoner_spells(data_version["v"], 'en_US')["data"]
+spell_icon = {}
+for key, value in spell_dict.items():
+    spell_icon[str(value["key"])] = key
+print(spell_icon)
+
 
 # queue_type = st.selectbox('Queue Type', ['Normal', 'Ranked'])
 # if not queue_type:
@@ -173,7 +183,7 @@ match_list = watcher.match.matchlist_by_puuid('americas', me['puuid'], type=queu
 # st.write(watcher.match.by_id('americas', match_list[1]))
 # fetch last match detail into table need to change id value to actual terms
 for i in range(len(match_list)-15):
-    c3, c4 = st.columns([1.25, 1.5])
+    c3, c4 = st.columns([1, 1])
 
     # last_match = my_matches['matches'][i]
     # match_detail = watcher.match.by_id(my_region, last_match['gameId'])
@@ -185,13 +195,17 @@ for i in range(len(match_list)-15):
     for row in match_detail['info']['participants']:
         participants_row = {}
         participants_row['Win'] = row['win']
+        participants_row["Summoner"] = row["summonerName"]
         participants_row['Icon'] = image_link('champion', row['championName'])
         participants_row['champion'] = row['championName']
         if participants_row['champion'] == 'MonkeyKing':
             participants_row['champion'] = 'Wukong'
-        participants_row['Spell1'] = row['summoner1Id']
-        participants_row['Spell2'] = row['summoner2Id']
-
+        participants_row['Spell1'] = "<img src='https://ddragon.leagueoflegends.com/cdn/11.24.1/img/spell/{}.png''width='40' height='40'>".format(spell_icon[str(row['summoner1Id'])])
+        participants_row['Spell2'] = "<img src='https://ddragon.leagueoflegends.com/cdn/11.24.1/img/spell/{}.png''width='40' height='40'>".format(spell_icon[str(row['summoner2Id'])])
+# "<img src='https://ddragon.leagueoflegends.com/cdn/11.17.1/img/champion/Aatrox.png'width='40' height='40'>"
+        # participants_row['Spell1'] = row['summoner1Id']
+        # participants_row['Spell2'] = row['summoner2Id']
+        # print(1, row['summoner1Id'])
         participants_row['LVL'] = row['champLevel']
         participants_row['K/D/A'] = (str(row['kills']) + "/" + str(row['deaths']) + "/" + str(row['assists']))
         participants_row['DMG'] = row['totalDamageDealt']
@@ -205,7 +219,7 @@ for i in range(len(match_list)-15):
     df = pd.DataFrame(participants)
 
     with c3:
-        st.subheader("Game {}".format(i + 1))
+        st.subheader("Game {}".format(i + 1) + ": " + match_detail["info"]["gameMode"])
         # st.dataframe(df)
         st.write(df.to_html(escape=False), unsafe_allow_html=True)
         st.write("<br>", unsafe_allow_html=True)
@@ -281,7 +295,15 @@ for i in range(len(match_list)-15):
 #     st.write(df.to_html(escape=False), unsafe_allow_html=True)
 #     st.write("<br>", unsafe_allow_html=True)
 
-st.altair_chart()
 
 # start looking at time line json and accumulate gold
 # graph the gold
+
+
+# https://ddragon.leagueoflegends.com/cdn/11.24.1/img/spell/SummonerDot.png spell img
+
+# st.write(watcher.data_dragon.summoner_spells(data_version["v"], 'en_US'))
+
+#
+match_detail = watcher.match.by_id('americas', match_list[-1])
+match_detail
