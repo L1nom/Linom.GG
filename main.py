@@ -40,8 +40,8 @@ static_icon_list = watcher.data_dragon.profile_icons(latest_icon_ver, 'en_US')
 
 def image_link(image_type, name):
     """
-    :param image_type:
-    :param name:
+    :param image_type: champion, icon
+    :param name: json data name
     :return: formatted url for the image icon
     """
 
