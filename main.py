@@ -5,9 +5,6 @@ import numpy as np
 
 st.set_page_config(layout="wide")
 
-with open('riot.txt') as f:
-   st.download_button('Download Riot Verification', f)
-
 # SUMMONER INFORMATION
 st.title("LINOM.GG!")
 api_key = st.secrets["RIOT_API_KEY"]
