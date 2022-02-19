@@ -232,3 +232,7 @@ for i in range(len(match_list) - 10):
             columns=['Team 1', 'Team 2', 'Gold Difference'])
 
         st.line_chart(chart_data)
+
+
+with open('riot.txt') as f:
+   st.download_button('Download Riot Verification', f)
